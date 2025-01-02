@@ -71,6 +71,13 @@ def add_todo():
     priority_manager.add_task(new_task, "Medium")
     functions_todo.write_todos(todos)
 
+def update_priority(index, new_priority):
+    todos[index]["priority"] = new_priority
+    priority_manager.remove_task(todos[index])
+    priority_manager.add_task(todos[index], new_priority)
+    functions_todo.write_todos(todos)
+    st.rerun()
+
 st.markdown("# <div style='text-align: center;'>Task Manager 📝</div>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center;'>Manage your day to day tasks</h3>", unsafe_allow_html=True)
 
@@ -79,12 +86,12 @@ if not os.path.exists("Todo.txt"):
         pass
 
 # Display tasks in columns
-for todo in todos:
+for i, todo in enumerate(todos):
     col1, col2 = st.columns([3, 2], border=True)
     with col1:
         checkbox = st.checkbox(todo["task"], key=todo["task"])
         if checkbox:
-            todos.remove(todo)
+            todos.pop(i)
             priority_manager.remove_task(todo)
             functions_todo.write_todos(todos)
             del st.session_state[todo["task"]]
@@ -92,12 +99,14 @@ for todo in todos:
     with col2:
         if f"priority_{todo['task']}" not in st.session_state:
             st.session_state[f"priority_{todo['task']}"] = todo["priority"]
-        priority = st.selectbox("priority", ["High", "Medium", "Low"], key=f"priority_{todo['task']}")
-        if priority != st.session_state[f"priority_{todo['task']}"]:
-            st.session_state[f"priority_{todo['task']}"] = priority
-            todo["priority"] = priority
-            priority_manager.add_task(todo, priority)
-            functions_todo.write_todos(todos)
+        priority = st.selectbox(
+            "priority",
+            ["High", "Medium", "Low"],
+            key=f"priority_{todo['task']}",
+            index=["High", "Medium", "Low"].index(st.session_state[f"priority_{todo['task']}"]),
+            on_change=update_priority,
+            args=(i, st.session_state[f"priority_{todo['task']}"])
+        )
 
 # Display tasks grouped by priority in the sidebar
 with st.sidebar:
@@ -115,4 +124,4 @@ for todo in todos:
         if current_time - task_time <= timedelta(hours=1):
             st.warning(f"Reminder: High priority task '{todo['task']}' was added within the last hour!")
 
-st.text_input(label="", placeholder="Enter your task below", type='default', on_change=add_todo, key="task")
+st.text_input(label="planner", placeholder="Enter your task below", type='default', on_change=add_todo, key="task")
