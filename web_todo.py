@@ -72,11 +72,13 @@ def add_todo():
     functions_todo.write_todos(todos)
 
 def update_priority(index, new_priority):
+    old_priority = todos[index]["priority"]
     todos[index]["priority"] = new_priority
     priority_manager.remove_task(todos[index])
+    print(todos)
+    print(new_priority)
     priority_manager.add_task(todos[index], new_priority)
     functions_todo.write_todos(todos)
-    st.rerun()
 
 st.markdown("# <div style='text-align: center;'>Task Manager 📝</div>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center;'>Manage your day to day tasks</h3>", unsafe_allow_html=True)
@@ -103,7 +105,7 @@ for i, todo in enumerate(todos):
             "priority",
             ["High", "Medium", "Low"],
             key=f"priority_{todo['task']}",
-            index=["High", "Medium", "Low"].index(st.session_state[f"priority_{todo['task']}"]),
+            index=["High", "Medium", "Low"].index(todo["priority"]),
             on_change=update_priority,
             args=(i, st.session_state[f"priority_{todo['task']}"])
         )
